@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  background-color: #f5f4f1;
+  color: #22201b;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background-color: #1C1A16;
+  color: #F5F4F1;
+}
+
+/* Dark mode — motif latar (BackgroundMotif) tetap brand-orange; opacity
+   dinaikkan sedikit karena kontrasnya berbeda di background gelap
+   (DESIGN.md §5.3). Group opacity (attribut `opacity` di <g> dalam
+   <pattern>) di-override via properti CSS. */
+.dark .bg-motif g[opacity] {
+  opacity: 0.3;
+}
+
+/* E1 (Sesi 12) — Fraunces variable: aktifkan axis khasnya, jangan cuma weight.
+   opsz besar = "display cut" khas peta; SOFT = kualitas tinta; WONK = karakter
+   serif hand-set yang membedakan dari serif generik. */
+.font-display {
+  font-variation-settings: "opsz" 96, "SOFT" 60, "WONK" 1;
+}
+
+/* E2 (Sesi 12) — card "sobekan tiket": rounded di 3 sudut, sudut kanan-bawah
+   dipotong miring (clip-path), bukan rounded rata 4 sudut. Dipakai di card
+   destinasi (grid + featured hero) + struk tiket di modal checkout/history. */
+.ticket-card {
+  border-radius: 1.25rem 1.25rem 0 1.25rem;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%);
+}
+
+/* E3 (Sesi 12) — tombol CTA "ekspedisi": persegi, 1 sudut terpotong miring,
+   border solid brand-orange (bukan pill rounded + panah generik). */
+.cta-cut {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+.nav-link {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #ea580c;
+    background-color: rgba(234, 88, 12, 0.1);
+    box-shadow: 0 0 25px 5px rgba(234, 88, 12, 0.2);
+    transform: translateY(-1px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* DESIGN.md §5.1 — garis rute "tergambar" sekali per load itinerary (SVG stroke draw-on, murah/GPU-friendly) */
+@keyframes nusapath-route-draw {
+  from { stroke-dashoffset: 5000; }
+  to { stroke-dashoffset: 0; }
+}
+
+.route-line-draw {
+  stroke-dasharray: 5000;
+  stroke-dashoffset: 5000;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .route-line-draw {
+    animation: nusapath-route-draw 1.6s ease-out forwards;
+  }
+}
+
+/* DESIGN.md §2 — toast dibuat lewat wrapper app/lib/toast.tsx (toast.custom
+   + token warna + ikon Lucide), BUKAN richColors Sonner. */

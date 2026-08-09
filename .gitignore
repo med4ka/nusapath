@@ -1,0 +1,17 @@
+# Ignore all markdown working docs — only README.md is public-facing
+*.md
+!README.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
