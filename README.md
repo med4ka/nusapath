@@ -1,99 +1,111 @@
-# NusaPath (Smart Tourism App)
+# NusaPath
 
-**An AI-assisted trip planning platform with IPFS-anchored digital tickets — built as a hackathon/competition prototype.**
+**An AI-assisted trip planning and booking platform for Indonesian destinations, with cryptographically verifiable e-tickets.**
 
-NusaPath pairs an AI itinerary generator ("Gari") with a booking flow that pins each ticket's data to IPFS, giving each booking a verifiable, tamper-evident hash rather than a database row that could be silently edited. Built under competition time constraints, so — honestly — the backend is meaningfully further along than the frontend, which still has several pages that aren't wired up to real endpoints yet. That's noted explicitly below rather than glossed over.
+NusaPath started as a hackathon prototype and was rebuilt from the ground up into a full booking platform: real authentication, three booking categories (destinations, transport, hotels), a working payment flow (simulated, but architected to drop in a real gateway), promo codes, cancellations, notifications, and a publicly verifiable ticket system anchored to IPFS.
 
-## What Actually Works (Verified in Code)
+## What NusaPath Does
 
-- **AI trip generation** — `POST /api/smart-trip` calls Google's Gemini API directly, with a structured prompt that forces a strict JSON itinerary format (day-by-day themes and activities, budget/style-aware). This is a real API call, not a mock.
-- **IPFS-anchored tickets** — `POST /api/booking` builds a ticket record, pins it to IPFS via the Pinata API, and stores the returned content hash (`ticket_hash`) alongside the booking in Postgres. If the IPFS pin fails, the booking still saves with a `PENDING_ON_CHAIN` placeholder rather than blocking the transaction — a reasonable fallback under a hackathon deadline.
-- **Rate limiting** — 20 requests/minute per IP on the API, via Fiber's limiter middleware
-- **DB connection pooling** — explicit `SetMaxIdleConns(10)` / `SetMaxOpenConns(100)` configured for Postgres/Supabase
+- **Gari, the AI trip assistant** — chat-based itinerary planning powered by Gemini. Gari recommends real destinations from the catalog (never invents places that don't exist in the database) and can generate structured day-by-day itineraries on request. Rate-limited per user to keep API costs predictable.
+- **Book destinations, transport, or hotels** — one unified booking flow across three categories: tourist destinations, flights/trains/buses, and hotel stays. Pricing is always resolved server-side from the database, never trusted from the client — this applies uniformly across all three categories and to promo code discounts.
+- **Verifiable e-tickets** — once a booking is paid, its ticket data is pinned to IPFS and the resulting hash is stored with the booking. Anyone — no account required — can paste that hash into the public verification page and confirm the ticket is real and untampered, without exposing the ticket holder's personal details.
+- **Promo codes** — percentage or fixed-amount discounts, with optional per-user usage limits and global usage caps, validated atomically at booking time to prevent race conditions on limited-use codes.
+- **Cancellations** — bookings can be cancelled before payment; seat/date holds are released back atomically.
+- **Notifications** — booking confirmations, ticket issuance, and promo usage generate in-app notifications with an unread counter.
+- **Wishlist & reviews** — save destinations for later; leave a rating and review only after a completed, ticket-issued booking (not before — this is enforced server-side).
+- **Admin panel** — manage destinations, transport routes, hotels, and promo codes without touching the database directly.
+- **Dark mode & three languages** — Indonesian, English, and German, switchable without a page reload.
 
-## Corrections from the Original Description
+## What's Deliberately Simulated
 
-Being precise about what's implemented vs. what was aspirational:
+Being upfront about the parts that aren't wired to real-world services, and why:
 
-- **"Encrypted ticket data"** — the ticket payload sent to IPFS is a plain formatted string (name, destination, timestamp), not actually encrypted. If encryption is added later, it'd sit between booking creation and the `PinToIPFS` call.
-- **No authentication layer exists yet** — every endpoint (`/destinations`, `/booking`, `/smart-trip`, `/facilities`) is currently open, with no JWT or session check. Fine for a demo, not for anything handling real payments.
-- **Several frontend routes have no corresponding backend endpoint** — the frontend includes pages for `merchandise`, `trending`, `transaction`, and `tripassist` that don't map to anything in the current API (`/destinations`, `/booking`, `/smart-trip`, `/facilities`, `/seed`). These are likely UI-only at this stage.
+- **Payment is simulated**, not a real gateway integration. It's built behind a `Provider` interface specifically so a real processor (Midtrans, Xendit, etc.) can be dropped in later without touching booking logic — but as it stands, no real money moves. This is labeled clearly in the UI at checkout.
+- **Transport and hotel schedules are admin-entered**, not pulled from live airline/rail/hotel APIs — there's no free, reliable public API for that at this scale, so availability is managed manually through the admin panel, the same way destination listings are.
+- **The IPFS ticket payload isn't encrypted** — it's a structured, non-sensitive summary (destination/route/hotel, date, hash), not the ticket holder's personal data. It's *anchored* (tamper-evident) rather than *private*.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS |
-| Backend | Go, Fiber v2, GORM |
-| Database | PostgreSQL (Supabase-compatible) |
-| AI | Google Gemini (direct REST call, no SDK) |
-| Decentralized Storage | IPFS via Pinata |
+| Frontend | Next.js, React, TypeScript, Tailwind CSS, Framer Motion |
+| Backend | Go, Fiber, GORM |
+| Database | PostgreSQL |
+| Auth | JWT in an httpOnly cookie, bcrypt password hashing |
+| AI | Google Gemini (Auth key, direct REST) |
+| Decentralized storage | IPFS via Pinata |
+
+## Architecture
+
+The backend follows a strict **Handler → Service → Repository** layering: handlers only parse requests and shape responses, business logic lives in services, and only repositories touch the database directly. This was a deliberate choice made early on, specifically so payment processing, seat/date holds, and promo validation could all be added later without handlers needing to know anything about SQL.
+
+Money is always `int64` (whole Rupiah) throughout the stack — never a float — to avoid rounding ambiguity. Every price the client sees in a request body is re-derived and re-validated server-side before anything is charged.
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 18+
-- Go 1.25+
-- A PostgreSQL/Supabase connection string
+- Go 1.22+
+- A PostgreSQL connection string
 - A Google Gemini API key
 - A Pinata JWT (for IPFS pinning)
 
 ### Backend
 
-Create `backend/.env`:
-```
-DATABASE_URL=your_postgres_connection_string
-GEMINI_API_KEY=your_gemini_api_key
-PINATA_JWT=your_pinata_jwt
-```
-
 ```bash
 cd backend
+cp .env.example .env
+# Fill in DATABASE_URL, JWT_SECRET (32+ random chars), GEMINI_API_KEY, PINATA_JWT
 go mod tidy
 go run main.go
+```
+
+On first run, seed the catalog (requires an admin account — see `AGENTS.md` for how to promote a user to admin):
+```bash
+curl http://localhost:8081/api/seed
+curl http://localhost:8081/api/seed-hotels
+curl http://localhost:8081/api/seed-transport
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
+cp .env.example .env.local
 npm install
 npm run dev
 ```
 
-## API Reference
-
-| Endpoint | Method | Purpose |
-|---|---|---|
-| `/api/destinations` | `GET` | List tourism destinations |
-| `/api/facilities` | `GET` | List nearby facilities (with lat/lng) |
-| `/api/smart-trip` | `POST` | Generate an AI itinerary via Gemini |
-| `/api/booking` | `POST` | Create a booking, pin ticket to IPFS |
-| `/api/seed` | `GET` | Seed initial destination data |
-
 ## Project Structure
 
 ```
-smart-tourism-app/
+nusapath/
 ├── backend/
-│   ├── handlers/       # route handlers
-│   ├── models/         # GORM models (Destination, Transaction, Facility)
+│   ├── handlers/       # HTTP layer only
+│   ├── service/         # business logic
+│   ├── repository/      # the only layer that touches the DB
+│   ├── middleware/       # auth, role checks, rate limiting
 │   ├── pkg/
-│   │   ├── ai/          # Gemini integration
-│   │   └── ipfs/        # Pinata/IPFS integration
-│   └── main.go
+│   │   ├── auth/          # JWT + password hashing
+│   │   ├── ai/             # Gemini client
+│   │   ├── ipfs/           # Pinata client
+│   │   └── payment/         # Provider interface + simulated implementation
+│   └── models/            # GORM structs shared across layers
 │
 └── frontend/
     └── app/
-        ├── booking/
-        ├── smartrip/
-        ├── account/
-        └── ...           # several routes here aren't backend-connected yet — see limitations above
+        ├── (destinations|transport|hotels)/   # browse & book, per category
+        ├── booking/                            # booking history, cancel, e-tickets
+        ├── verify/                              # public ticket verification
+        ├── account/, wishlist/, admin/
+        └── components/                          # FloatingMascot (Gari), CheckoutModal, etc.
 ```
 
 ## Status
 
-Competition prototype. The AI itinerary engine and IPFS ticket-pinning are functional end-to-end. Authentication, payment integration, and several frontend sections are not yet built out.
+Functionally complete for a portfolio-grade prototype: authentication, three booking categories, simulated payment with a real-gateway-ready architecture, promo codes, cancellations, notifications, wishlist, reviews, an admin panel, dark mode, and i18n are all implemented and working end-to-end. A security pass covering authorization, price integrity, rate limiting, and secret handling has been done — see `PROGRESS.md` for the audit trail if you want the detail.
+
+Not built, and not currently planned: a real payment gateway, live transport/hotel data feeds, and encrypted ticket payloads.
 
 ---
 
