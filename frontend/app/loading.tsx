@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-// PENTING (pola AGENTS.md §4): overlay position:fixed WAJIB lewat portal ke
-// document.body + mounted guard — ancestor transform/backdrop-filter
-// mengubah containing block fixed.
+// Overlay uses position:fixed rendered via portal to document.body with a
+// mounted guard — any ancestor with transform/backdrop-filter changes the
+// containing block for fixed elements.
 export default function Loading() {
   const [mounted, setMounted] = useState(false);
 

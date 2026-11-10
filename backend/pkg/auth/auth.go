@@ -43,8 +43,8 @@ type Claims struct {
 }
 
 // IssueToken carries role into the token. Consequence: role changes in DB
-// only take effect after user re-login — accepted tradeoff (see AGENTS.md §4)
-// so middleware does not need to query DB per request.
+// only take effect after user re-login — accepted tradeoff so middleware
+// does not need to query DB per request.
 func IssueToken(userID uint, role, secret string, ttl time.Duration) (string, error) {
 	if secret == "" {
 		return "", ErrEmptySecret

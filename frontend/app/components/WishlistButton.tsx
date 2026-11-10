@@ -35,7 +35,7 @@ export default function WishlistButton({
   const pendingRef = useRef(false);
 
   // Sync when data list is refetched (e.g. page navigation / /wishlist).
-  // setState scheduled as microtask (AGENTS.md §4 pattern) — not sync in
+  // setState scheduled as microtask (promise-chain) — not sync in
   // effect body so react-hooks/set-state-in-effect passes lint.
   useEffect(() => {
     Promise.resolve().then(() => setWishlisted(initialWishlisted));

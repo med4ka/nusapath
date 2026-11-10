@@ -6,7 +6,7 @@ import { MapPin, Plane } from "lucide-react";
 import { useLanguage } from "../lib/LanguageContext";
 
 // Toggle "Destinasi Wisata" vs "Transportasi" — entry ke /transport TANPA
-// nambah tab BottomNav (tetap 3 tab final, keputusan Ghif).
+// nambah tab BottomNav (tetap 3 tab final, agar navigasi tetap sederhana).
 // Dipasang di atas grid /destinations dan di atas search /transport.
 export default function DestTypeToggle() {
   const pathname = usePathname();

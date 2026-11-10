@@ -7,10 +7,9 @@ import { usePathname } from "next/navigation";
 import { Compass, Ticket, CircleUserRound } from "lucide-react";
 import { useLanguage } from "../lib/LanguageContext";
 
-// CRITICAL (see AGENTS.md §4): components with
-// position:fixed MUST render via portal to document.body. Any ancestor
-// with transform/backdrop-filter/will-change (e.g. motion wrapper from
-// page-transition or other animation) changes the containing block for
+// Components with position:fixed MUST render via portal to document.body.
+// Any ancestor with transform/backdrop-filter/will-change (e.g. motion wrapper
+// from page-transition or other animation) changes the containing block for
 // position:fixed → nav "floats" at scroll position / overlaps content.
 // Portal breaks that dependency permanently — same pattern as LoginModal.
 //
@@ -24,9 +23,9 @@ export default function MobileNav() {
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
-  // setMounted intentionally scheduled as microtask (promise-chain, same pattern
-  // as AuthContext & new pages) — setState NOT called synchronously in effect
-  // body, so react-hooks/set-state-in-effect stays clean without comment.
+  // setMounted intentionally scheduled as microtask (promise-chain) —
+  // setState NOT called synchronously in effect body, so react-hooks/set-state-in-effect
+  // stays clean without comment.
   // Behavior remains guard: SSR & first hydration render null, after mount
   // portal to document.body appears. Must be preserved — without this guard
   // createPortal crashes on SSR (document undefined).

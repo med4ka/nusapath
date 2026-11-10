@@ -58,7 +58,7 @@ func (s *DestinationService) Trending(ctx context.Context, userID uint) ([]model
 // Get returns detail of 1 destination + its images + display rating
 // (real review if available, fallback to old field). nil if not found —
 // including soft-deleted destinations (default gorm scope, consistent with
-// booking price lookup rules in AGENTS.md §4). userID = 0 anonymous →
+// booking price lookup rules). userID = 0 anonymous →
 // is_wishlisted not set in response.
 func (s *DestinationService) Get(ctx context.Context, id, userID uint) (*models.DestinationDetail, error) {
 	destination, err := s.destinations.FindByID(ctx, id)

@@ -1,6 +1,6 @@
 # Ignore all markdown working docs — only README.md is public-facing
 *.md
-!README.md
+!/README.md
 
 # IDE
 .idea/

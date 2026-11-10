@@ -63,7 +63,7 @@ func (h *BookingHandler) MyBookings(c *fiber.Ctx) error {
 	return c.JSON(bookings)
 }
 
-// ConfirmPayment — POST /api/booking/:id/confirm-payment (Phase 3).
+// ConfirmPayment — POST /api/booking/:id/confirm-payment.
 // Auth REQUIRED (route mounted after middleware.Auth). Does NOT read body
 // at all — status/amount never comes from client. user_id
 // taken from context cookie. Success response idempotent for bookings

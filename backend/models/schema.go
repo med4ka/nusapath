@@ -20,7 +20,7 @@ type User struct {
 	Email        string    `gorm:"type:varchar(150);not null;uniqueIndex" json:"email"`
 	PasswordHash string    `gorm:"type:varchar(255);not null" json:"-"`
 	// Role stored in JWT at login — role changes in DB only take effect
-	// after user re-login (RBAC decision, see AGENTS.md §4).
+	// after user re-login (middleware reads role from token, no DB query per request).
 	Role      string    `gorm:"type:varchar(20);not null;default:'user';index" json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -39,7 +39,7 @@ type Destination struct {
 	ImageURL string `gorm:"type:varchar(255)" json:"image_url"`
 	// Soft delete: destinations with booking history must not be permanently
 	// lost (FK RESTRICT on transactions), so deleted via DeletedAt.
-	// Destinations without bookings are hard-deleted. See AGENTS.md §4.
+	// Destinations without bookings are hard-deleted.
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
@@ -315,7 +315,7 @@ type GariChatLog struct {
 
 // PromoCode — discount/promo code. Created & managed by admin; used by user
 // during booking. All discount calculation done server-side (price never
-// from client). See SPEC.md §... for endpoint details.
+// from client).
 type PromoCode struct {
 	ID            uint      `gorm:"primaryKey" json:"id"`
 	Code          string    `gorm:"type:varchar(50);not null;uniqueIndex" json:"code"`

@@ -54,8 +54,7 @@ export default function WishlistPage() {
   }, []);
 
   useEffect(() => {
-    // setState di-schedule microtask (pola AGENTS.md §4) supaya
-    // react-hooks/set-state-in-effect bersih.
+    // setState scheduled as microtask so react-hooks/set-state-in-effect stays clean.
     if (user) {
       Promise.resolve().then(() => load());
     } else if (!authLoading) {

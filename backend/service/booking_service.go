@@ -58,7 +58,7 @@ type BookingRequest struct {
 }
 
 // BookingService depends on payment.Provider interface, NOT directly on
-// SimulatedProvider — main.go determines which provider to inject (SPEC.md §5).
+// SimulatedProvider — main.go determines which provider to inject.
 // Upgrading to a real gateway does not touch the service.
 type BookingService struct {
 	bookings      *repository.BookingRepository
@@ -121,7 +121,7 @@ func (s *BookingService) CreateBooking(ctx context.Context, userID uint, req Boo
 	// Quantity defaults to 1 if not sent. AmountPaid is ALWAYS calculated
 	// here: unit price from source of truth (Destination/TransportRoute
 	// .Price), quantity from client is just a multiplier — no path that
-	// accepts amount_paid from client (AGENTS.md §2).
+	// accepts amount_paid from client.
 	quantity := 1
 	if req.Quantity != nil {
 		quantity = *req.Quantity
@@ -248,7 +248,7 @@ func (s *BookingService) calculateDiscountAmount(promo *models.PromoCode, subtot
 	}
 }
 
-// createDestinationBooking — old flow (Batch 2): quantity 1–10, amount
+// createDestinationBooking — destination flow: quantity 1–10, amount
 // calculated from Destination.Price.
 func (s *BookingService) createDestinationBooking(ctx context.Context, userID uint, req BookingRequest, quantity int) (models.Transaction, bool, error) {
 	if quantity > 10 {
@@ -375,7 +375,7 @@ func (s *BookingService) resolveCreateDuplicate(ctx context.Context, userID uint
 	return models.Transaction{}, false, err
 }
 
-// ConfirmPayment — POST /api/booking/:id/confirm-payment (Phase 3).
+// ConfirmPayment — POST /api/booking/:id/confirm-payment.
 // Sequential validation:
 //  1. Booking exists (404) and belongs to logged-in user — user_id from context,
 //     NO input from body (endpoint accepts no body at all).
@@ -388,8 +388,8 @@ func (s *BookingService) resolveCreateDuplicate(ctx context.Context, userID uint
 // payload (DIFFERENT format for destination vs transport, see buildTicketPayload)
 // → pin to IPFS (SKIP + warning if PINATA_JWT is not set — dev mode;
 // ticket still issued with local hash) → TICKET_ISSUED + ticket_hash.
-// Old decision (AGENTS.md §4): IPFS pin happens HERE, NOT when
-// booking is created — no anchored tickets for unpaid bookings.
+// IPFS pin happens here, NOT when booking is created — prevents anchoring
+// tickets for bookings that are never paid.
 func (s *BookingService) ConfirmPayment(ctx context.Context, userID, bookingID uint) (models.Transaction, error) {
 	transaction, err := s.bookings.FindByID(ctx, bookingID)
 	if err != nil {

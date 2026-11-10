@@ -89,12 +89,12 @@ export default function CheckoutModal({
   const [promoAppliedCode, setPromoAppliedCode] = useState("");
   const [promoValidating, setPromoValidating] = useState(false);
 
-  // CRITICAL (AGENTS.md §4 pattern): createPortal needs document.body (client-only)
-  // and position:fixed components MUST be portaled — any ancestor with transform/
-  // backdrop-filter/isolation (e.g. `relative isolate` background motif wrapper,
-  // page-transition motion) traps z-index & containing-block for fixed →
+  // createPortal needs document.body (client-only) and position:fixed
+  // components MUST be portaled — any ancestor with transform/backdrop-filter/
+  // isolation (e.g. `relative isolate` background motif wrapper, page-transition
+  // motion) traps z-index & containing-block for fixed →
   // MobileNav (z-50, already portaled to body) overlaps modal backdrop.
-  // setMounted scheduled as microtask (promise-chain, AuthContext pattern) so
+  // setMounted scheduled as microtask (promise-chain) so
   // react-hooks/set-state-in-effect stays clean — not sync setState in effect.
   useEffect(() => {
     Promise.resolve().then(() => setMounted(true));

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -21,8 +21,8 @@ export default function Navbar() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Click outside dropdown -> close. This is an ABSOLUTE element inside a
-  // relative wrapper (not a fixed modal) so it doesn't need a portal -
-  // AGENTS.md S4 only applies to position:fixed components.
+  // relative wrapper (not a fixed modal) so it doesn't need a portal —
+  // portal is only required for position:fixed components.
   useEffect(() => {
     if (!isMenuOpen) return;
     const onClick = (e: Event) => {
@@ -117,8 +117,8 @@ export default function Navbar() {
                 </div>
                 <NotificationsBell />
                 {/* Avatar = dropdown button: click -> small menu "Account" + "Logout".
-                    Absolute from relative wrapper (not fixed), so no portal needed
-                    (AGENTS.md S4 only applies to position:fixed). */}
+                    Absolute from relative wrapper (not fixed), so no portal needed —
+                    portal is only required for position:fixed components. */}
                 <div className="relative">
                   <button
                     onClick={() => setIsMenuOpen((v) => !v)}

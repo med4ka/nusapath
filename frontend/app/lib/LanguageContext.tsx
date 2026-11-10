@@ -46,8 +46,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("id");
 
   useEffect(() => {
-    // Read localStorage via microtask (standard pattern AGENTS.md §4) — avoids
-    // hydration mismatch (server always renders "id") while passing react-hooks.
+    // Read localStorage via microtask — avoids hydration mismatch
+    // (server always renders "id") while keeping react-hooks lint clean.
     Promise.resolve().then(() => {
       const saved = window.localStorage.getItem(STORAGE_KEY) as Locale | null;
       if (saved && DICTS[saved]) setLocaleState(saved);

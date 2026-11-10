@@ -123,7 +123,7 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (models
 		Email:        email,
 		PasswordHash: hash,
 		// Role is ALWAYS "user" — client can never choose their own role.
-		// Admin promotion only via direct DB access (AGENTS.md §4).
+		// Admin promotion only via direct DB access.
 		Role: models.RoleUser,
 	}
 	if err := s.users.Create(ctx, &user); err != nil {

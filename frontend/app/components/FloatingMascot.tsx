@@ -9,9 +9,8 @@ import { toast } from "../lib/toast";
 import { useAuth } from "../lib/AuthContext";
 import { useLanguage } from "../lib/LanguageContext";
 
-// CRITICAL (AGENTS.md §4): position:fixed MUST use portal to document.body
-// + mounted guard — ancestor transform/backdrop-filter changes containing
-// block for fixed.
+// position:fixed MUST use portal to document.body + mounted guard —
+// ancestor transform/backdrop-filter changes the containing block for fixed.
 //
 // GARI — Full chatbot connected to POST /api/gari/chat.
 // - Rate limit 5/day WIB (backend); 402 → show verbatim + disable input for
